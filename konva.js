@@ -8,7 +8,7 @@
    * Konva JavaScript Framework v3.0.0-3
    * http://konvajs.github.io/
    * Licensed under the MIT
-   * Date: Sat Feb 23 2019
+   * Date: Sat Mar 02 2019
    *
    * Original work Copyright (C) 2011 - 2013 by Eric Rowell (KineticJS)
    * Modified work Copyright (C) 2014 - present by Anton Lavrenov (Konva)
@@ -2980,9 +2980,9 @@
           // remove from ids and names hashes
           _removeId(this.id(), this);
           // remove all names
-          var names$$1 = (this.name() || '').split(/\s/g);
-          for (var i = 0; i < names$$1.length; i++) {
-              var subname = names$$1[i];
+          var names = (this.name() || '').split(/\s/g);
+          for (var i = 0; i < names.length; i++) {
+              var subname = names[i];
               _removeName(subname, this._id);
           }
           this.remove();
@@ -4061,8 +4061,8 @@
        * node.hasName('selected'); // return false
        */
       Node.prototype.hasName = function (name) {
-          var names$$1 = (this.name() || '').split(/\s/g);
-          return names$$1.indexOf(name) !== -1;
+          var names = (this.name() || '').split(/\s/g);
+          return names.indexOf(name) !== -1;
       };
       /**
        * remove name from node
@@ -4077,11 +4077,11 @@
        * node.name(); // return 'red'
        */
       Node.prototype.removeName = function (name) {
-          var names$$1 = (this.name() || '').split(/\s/g);
-          var index = names$$1.indexOf(name);
+          var names = (this.name() || '').split(/\s/g);
+          var index = names.indexOf(name);
           if (index !== -1) {
-              names$$1.splice(index, 1);
-              this.setName(names$$1.join(' '));
+              names.splice(index, 1);
+              this.setName(names.join(' '));
           }
           return this;
       };
@@ -4416,6 +4416,20 @@
    *
    * // set y
    * node.y(5);
+   */
+  Factory.addGetterSetter(Node, 'z', 0, Validators.getNumberValidator());
+  /**
+   * get/set z position
+   * @name Konva.Node#z
+   * @method
+   * @param {Number} z
+   * @returns {Integer}
+   * @example
+   * // get z
+   * var z = node.z();
+   *
+   * // set z
+   * node.z(5);
    */
   Factory.addGetterSetter(Node, 'globalCompositeOperation', 'source-over', Validators.getStringValidator());
   /**
@@ -5375,10 +5389,10 @@
               }
           });
           // if child is group we need to make sure it has visible shapes inside
-          var shapes$$1 = this.find('Shape');
+          var shapes = this.find('Shape');
           var hasVisible = false;
-          for (var i = 0; i < shapes$$1.length; i++) {
-              var shape = shapes$$1[i];
+          for (var i = 0; i < shapes.length; i++) {
+              var shape = shapes[i];
               if (shape._isVisible(this)) {
                   hasVisible = true;
                   break;
@@ -6845,7 +6859,9 @@
   var Group = /** @class */ (function (_super) {
       __extends(Group, _super);
       function Group() {
-          return _super !== null && _super.apply(this, arguments) || this;
+          var _this = _super !== null && _super.apply(this, arguments) || this;
+          _this.needReorder = false;
+          return _this;
       }
       Group.prototype._validateAdd = function (child) {
           var type = child.getType();
@@ -6853,9 +6869,45 @@
               Util.throw('You may only add groups and shapes to groups.');
           }
       };
+      Group.prototype.add = function (child) {
+          this.needReorder = true;
+          return _super.prototype.add.call(this, child);
+      };
+      Group.prototype._drawChildren = function (canvas, drawMethod, top, caching, skipBuffer, skipComposition) {
+          if (this.needReorder == true) {
+              this._reorderChildrenByZIndex();
+          }
+          _super.prototype._drawChildren.call(this, canvas, drawMethod, top, caching, skipBuffer, skipComposition);
+      };
+      Group.prototype._reorderChildrenByZIndex = function () {
+          var _this = this;
+          var tmpArr = this.children.toArray();
+          tmpArr.sort(function (childA, childB) {
+              return childA.z() - childB.z();
+          });
+          this.children = new Collection();
+          tmpArr.forEach(function (child) {
+              _this.children.push(child);
+          });
+          this.needReorder = false;
+      };
       return Group;
   }(Container));
   Group.prototype.nodeType = 'Group';
+  Factory.addGetterSetter(Group, 'zIndexEnabled', 0, Validators.getBooleanValidator());
+  /**
+   * get/set z index sort
+   * @name Konva.Node#zIndexEnabled
+   * @method
+   * @param {Number} zIndexEnabled
+   * @returns {Integer}
+   * @example
+   * // get zIndexEnabled
+   * var zIndexEnabled = node.zIndexEnabled();
+   *
+   * // set zIndexEnabled
+   * node.zIndexEnabled(true);
+   */
   Collection.mapMethods(Group);
 
   var HAS_SHADOW = 'hasShadow';

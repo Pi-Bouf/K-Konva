@@ -210,6 +210,7 @@ declare namespace Konva {
   interface NodeConfig {
     x?: number;
     y?: number;
+    z?: number;
     width?: number;
     height?: number;
     visible?: boolean;
@@ -446,6 +447,8 @@ declare namespace Konva {
     x(x: number): this;
     y(): number;
     y(y: number): this;
+    z(): number;
+    z(y: number): this;
     globalCompositeOperation(): globalCompositeOperationType;
     globalCompositeOperation(type: globalCompositeOperationType): this;
   }
@@ -457,6 +460,7 @@ declare namespace Konva {
     clipY?: number;
     clipWidth?: number;
     clipHeight?: number;
+    zIndexEnabled?: boolean;
   }
 
   class Container<T extends Node = Node> extends Node {
@@ -695,7 +699,10 @@ declare namespace Konva {
     drawScene(): void;
   }
 
-  class Group<T extends Node = Node> extends Container<T> {}
+  class Group<T extends Node = Node> extends Container<T> {
+    zIndexEnabled(): boolean;
+    zIndexEnabled(val: boolean): this;
+  }
 
   interface CanvasConfig {
     width: number;
