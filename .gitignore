@@ -14,7 +14,7 @@ lib
 src_old
 *.zip
 *_cache
-types
+# types
 
 # Numerous always-ignore extensions
 *.diff
