@@ -8,7 +8,7 @@
    * Konva JavaScript Framework v3.1.6
    * http://konvajs.org/
    * Licensed under the MIT
-   * Date: Wed Feb 27 2019
+   * Date: Sat Mar 02 2019
    *
    * Original work Copyright (C) 2011 - 2013 by Eric Rowell (KineticJS)
    * Modified work Copyright (C) 2014 - present by Anton Lavrenov (Konva)
@@ -4380,6 +4380,20 @@
    * // set y
    * node.y(5);
    */
+  Factory.addGetterSetter(Node, 'z', 0, getNumberValidator());
+  /**
+   * get/set z position
+   * @name Konva.Node#z
+   * @method
+   * @param {Number} z
+   * @returns {Integer}
+   * @example
+   * // get z
+   * var z = node.z();
+   *
+   * // set z
+   * node.z(5);
+   */
   Factory.addGetterSetter(Node, 'globalCompositeOperation', 'source-over', getStringValidator());
   /**
    * get/set globalCompositeOperation of a shape
@@ -5469,7 +5483,7 @@
   Collection.mapMethods(Container);
 
   // CONSTANTS
-  var STAGE$1 = 'Stage', STRING = 'string', PX = 'px', MOUSEOUT = 'mouseout', MOUSELEAVE$1 = 'mouseleave', MOUSEOVER = 'mouseover', MOUSEENTER$1 = 'mouseenter', MOUSEMOVE = 'mousemove', MOUSEDOWN = 'mousedown', MOUSEUP = 'mouseup', CONTEXTMENU = 'contextmenu', CLICK = 'click', DBL_CLICK = 'dblclick', TOUCHSTART = 'touchstart', TOUCHEND = 'touchend', TAP = 'tap', DBL_TAP = 'dbltap', TOUCHMOVE = 'touchmove', WHEEL = 'wheel', CONTENT_MOUSEOUT = 'contentMouseout', CONTENT_MOUSEOVER = 'contentMouseover', CONTENT_MOUSEMOVE = 'contentMousemove', CONTENT_MOUSEDOWN = 'contentMousedown', CONTENT_MOUSEUP = 'contentMouseup', CONTENT_CONTEXTMENU = 'contentContextmenu', CONTENT_CLICK = 'contentClick', CONTENT_DBL_CLICK = 'contentDblclick', CONTENT_TOUCHSTART = 'contentTouchstart', CONTENT_TOUCHEND = 'contentTouchend', CONTENT_DBL_TAP = 'contentDbltap', CONTENT_TAP = 'contentTap', CONTENT_TOUCHMOVE = 'contentTouchmove', CONTENT_WHEEL = 'contentWheel', DIV = 'div', RELATIVE = 'relative', KONVA_CONTENT = 'konvajs-content', SPACE$1 = ' ', UNDERSCORE = '_', CONTAINER = 'container', MAX_LAYERS_NUMBER = 5, EMPTY_STRING$1 = '', EVENTS = [
+  var STAGE$1 = 'Stage', STRING = 'string', PX = 'px', MOUSEOUT = 'mouseout', MOUSELEAVE$1 = 'mouseleave', MOUSEOVER = 'mouseover', MOUSEENTER$1 = 'mouseenter', MOUSEMOVE = 'mousemove', MOUSEDOWN = 'mousedown', MOUSEUP = 'mouseup', CONTEXTMENU = 'contextmenu', CLICK = 'click', DBL_CLICK = 'dblclick', TOUCHSTART = 'touchstart', TOUCHEND = 'touchend', TAP = 'tap', DBL_TAP = 'dbltap', TOUCHMOVE = 'touchmove', WHEEL = 'wheel', CONTENT_MOUSEOUT = 'contentMouseout', CONTENT_MOUSEOVER = 'contentMouseover', CONTENT_MOUSEMOVE = 'contentMousemove', CONTENT_MOUSEDOWN = 'contentMousedown', CONTENT_MOUSEUP = 'contentMouseup', CONTENT_CONTEXTMENU = 'contentContextmenu', CONTENT_CLICK = 'contentClick', CONTENT_DBL_CLICK = 'contentDblclick', CONTENT_TOUCHSTART = 'contentTouchstart', CONTENT_TOUCHEND = 'contentTouchend', CONTENT_DBL_TAP = 'contentDbltap', CONTENT_TAP = 'contentTap', CONTENT_TOUCHMOVE = 'contentTouchmove', CONTENT_WHEEL = 'contentWheel', DIV = 'div', RELATIVE = 'relative', KONVA_CONTENT = 'konvajs-content', UNDERSCORE = '_', CONTAINER = 'container', MAX_LAYERS_NUMBER = 5, EMPTY_STRING$1 = '', EVENTS = [
       MOUSEDOWN,
       MOUSEMOVE,
       MOUSEUP,
@@ -6120,13 +6134,6 @@
           this.content.setAttribute('role', 'presentation');
           container.appendChild(this.content);
           this._resizeDOM();
-      };
-      Stage.prototype._onContent = function (typesStr, handler) {
-          var types = typesStr.split(SPACE$1), len = types.length, n, baseEvent;
-          for (n = 0; n < len; n++) {
-              baseEvent = types[n];
-              this.content.addEventListener(baseEvent, handler, false);
-          }
       };
       // currently cache function is now working for stage, because stage has no its own canvas element
       Stage.prototype.cache = function () {
@@ -8346,7 +8353,9 @@
   var Group = /** @class */ (function (_super) {
       __extends(Group, _super);
       function Group() {
-          return _super !== null && _super.apply(this, arguments) || this;
+          var _this = _super !== null && _super.apply(this, arguments) || this;
+          _this.needReorder = false;
+          return _this;
       }
       Group.prototype._validateAdd = function (child) {
           var type = child.getType();
@@ -8354,10 +8363,46 @@
               Util.throw('You may only add groups and shapes to groups.');
           }
       };
+      Group.prototype.add = function (child) {
+          this.needReorder = true;
+          return _super.prototype.add.call(this, child);
+      };
+      Group.prototype._drawChildren = function (canvas, drawMethod, top, caching, skipBuffer, skipComposition) {
+          if (this.needReorder == true) {
+              this._reorderChildrenByZIndex();
+          }
+          _super.prototype._drawChildren.call(this, canvas, drawMethod, top, caching, skipBuffer, skipComposition);
+      };
+      Group.prototype._reorderChildrenByZIndex = function () {
+          var _this = this;
+          var tmpArr = this.children.toArray();
+          tmpArr.sort(function (childA, childB) {
+              return childA.z() - childB.z();
+          });
+          this.children = new Collection();
+          tmpArr.forEach(function (child) {
+              _this.children.push(child);
+          });
+          this.needReorder = false;
+      };
       return Group;
   }(Container));
   Group.prototype.nodeType = 'Group';
   _registerNode(Group);
+  Factory.addGetterSetter(Group, 'zIndexEnabled', 0, getBooleanValidator());
+  /**
+   * get/set z index sort
+   * @name Konva.Node#zIndexEnabled
+   * @method
+   * @param {Number} zIndexEnabled
+   * @returns {Integer}
+   * @example
+   * // get zIndexEnabled
+   * var zIndexEnabled = node.zIndexEnabled();
+   *
+   * // set zIndexEnabled
+   * node.zIndexEnabled(true);
+   */
   Collection.mapMethods(Group);
 
   var blacklist = {
@@ -12442,7 +12487,7 @@
   // constants
   var AUTO = 'auto', 
   //CANVAS = 'canvas',
-  CENTER = 'center', JUSTIFY = 'justify', CHANGE_KONVA$1 = 'Change.konva', CONTEXT_2D = '2d', DASH = '-', LEFT$1 = 'left', TEXT = 'text', TEXT_UPPER = 'Text', TOP = 'top', BOTTOM = 'bottom', MIDDLE = 'middle', NORMAL = 'normal', PX_SPACE = 'px ', SPACE$2 = ' ', RIGHT$1 = 'right', WORD = 'word', CHAR = 'char', NONE$1 = 'none', ELLIPSIS = '…', ATTR_CHANGE_LIST$1 = [
+  CENTER = 'center', JUSTIFY = 'justify', CHANGE_KONVA$1 = 'Change.konva', CONTEXT_2D = '2d', DASH = '-', LEFT$1 = 'left', TEXT = 'text', TEXT_UPPER = 'Text', TOP = 'top', BOTTOM = 'bottom', MIDDLE = 'middle', NORMAL = 'normal', PX_SPACE = 'px ', SPACE$1 = ' ', RIGHT$1 = 'right', WORD = 'word', CHAR = 'char', NONE$1 = 'none', ELLIPSIS = '…', ATTR_CHANGE_LIST$1 = [
       'fontFamily',
       'fontSize',
       'fontStyle',
@@ -12755,15 +12800,15 @@
           // fix for: https://github.com/konvajs/konva/issues/94
           if (UA.isIE) {
               return (this.fontStyle() +
-                  SPACE$2 +
+                  SPACE$1 +
                   this.fontSize() +
                   PX_SPACE +
                   this.fontFamily());
           }
           return (this.fontStyle() +
-              SPACE$2 +
+              SPACE$1 +
               this.fontVariant() +
-              SPACE$2 +
+              SPACE$1 +
               this.fontSize() +
               PX_SPACE +
               this.fontFamily());
@@ -12824,13 +12869,13 @@
                               // try to find a space or dash where wrapping could be done
                               var wrapIndex;
                               var nextChar = line[match.length];
-                              var nextIsSpaceOrDash = nextChar === SPACE$2 || nextChar === DASH;
+                              var nextIsSpaceOrDash = nextChar === SPACE$1 || nextChar === DASH;
                               if (nextIsSpaceOrDash && matchWidth <= maxWidth) {
                                   wrapIndex = match.length;
                               }
                               else {
                                   wrapIndex =
-                                      Math.max(match.lastIndexOf(SPACE$2), match.lastIndexOf(DASH)) +
+                                      Math.max(match.lastIndexOf(SPACE$1), match.lastIndexOf(DASH)) +
                                           1;
                               }
                               if (wrapIndex > 0) {

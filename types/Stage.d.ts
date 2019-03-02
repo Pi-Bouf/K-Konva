@@ -52,7 +52,6 @@ export declare class Stage extends Container {
         left: number;
     };
     _buildDOM(): void;
-    _onContent(typesStr: any, handler: any): void;
     cache(): this;
     clearCache(): this;
     batchDraw(): this;

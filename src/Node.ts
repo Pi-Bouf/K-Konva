@@ -2304,6 +2304,7 @@ export abstract class Node {
 
   x: GetSet<number, this>;
   y: GetSet<number, this>;
+  z: GetSet<number, this>;
   globalCompositeOperation: GetSet<globalCompositeOperationType, this>;
 
   /**
@@ -2450,6 +2451,22 @@ Factory.addGetterSetter(Node, 'y', 0, getNumberValidator());
  *
  * // set y
  * node.y(5);
+ */
+
+Factory.addGetterSetter(Node, 'z', 0, getNumberValidator());
+
+/**
+ * get/set z position
+ * @name Konva.Node#z
+ * @method
+ * @param {Number} z
+ * @returns {Integer}
+ * @example
+ * // get z
+ * var z = node.z();
+ *
+ * // set z
+ * node.z(5);
  */
 
 Factory.addGetterSetter(

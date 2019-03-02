@@ -216,6 +216,7 @@ export declare abstract class Node {
     height: GetSet<number, this>;
     x: GetSet<number, this>;
     y: GetSet<number, this>;
+    z: GetSet<number, this>;
     globalCompositeOperation: GetSet<globalCompositeOperationType, this>;
     static create(data: any, container: any): any;
     static _createNode(obj: any, container?: any): any;
